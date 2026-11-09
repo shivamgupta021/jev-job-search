@@ -93,6 +93,8 @@ export function formatCost(c: CostSummary): string {
     lines.push("Claude (the Claude API, billed to your key)");
     for (const [k, b] of Object.entries(c.claude)) lines.push(row(k, b));
     if (!claudeCalls) lines.push("  no calls recorded");
+  } else if (writerBackend() === "codex") {
+    lines.push(`Writer: ${claudeCalls} recorded call(s). Codex CLI billing is not reported here; check your Codex account usage. Historical calls may include other backends.`);
   } else {
     lines.push(`Claude: ${claudeCalls} call(s) through Claude Code on your subscription, no separate bill`);
   }

@@ -497,7 +497,7 @@ async function walk(jev: JevClient, profile: Profile, e: QueueEntry, first: Fill
     // shows something else), instead of the form being given up. It stops when a round changes nothing.
     const seen = new Set<string>();
     for (let round = 1; round < RUN.resolveRounds && askAgain(r, seen); round++) {
-      if (!o.quiet) console.log(`${e.job.company}: ${r.failed.length} box(es) did not take their value. Asking Claude how to answer them (round ${round + 1}).`);
+      if (!o.quiet) console.log(`${e.job.company}: ${r.failed.length} box(es) did not take their value. Asking the writer how to answer them (round ${round + 1}).`);
       r = await resolvePage(jev, profile, e, r, true);
     }
     if (!shouldAdvance(r)) return r;

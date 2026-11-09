@@ -2,6 +2,11 @@
 
 *The job search that fills the forms for you.*
 
+**Using Codex?** This fork adds a Codex CLI writer. Start with
+[Codex setup and testing](docs/CODEX.md). Set `WRITER_BACKEND=codex`;
+Claude is not required for that backend. The upstream Claude instructions below
+still apply when using a Claude backend.
+
 [![ci](https://github.com/qbeka/jev-job-search/actions/workflows/ci.yml/badge.svg)](https://github.com/qbeka/jev-job-search/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/qbeka/jev-job-search?label=release)](https://github.com/qbeka/jev-job-search/releases)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

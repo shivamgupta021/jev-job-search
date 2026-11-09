@@ -7,9 +7,10 @@
 import { spawn } from "node:child_process";
 import { appendFileSync, mkdirSync } from "node:fs";
 import { z } from "zod";
-import { childEnv, DOCUMENTS, PATHS, WRITER, writerBackend } from "../config.js";
+import { childEnv, codexSettings, DOCUMENTS, PATHS, WRITER, writerBackend } from "../config.js";
 import type { QueueEntry } from "../jobs/queue.js";
 import type { Profile } from "../profile/schema.js";
+import { callCodex } from "./codex.js";
 import { BANK_DRAFTS, BANK_INTENTS } from "./bank.js";
 import { answerContext, jobContext } from "./context.js";
 import { fingerprintOf, Resolution, type OpenField } from "./memory.js";
@@ -137,7 +138,7 @@ function recordWriterCall(envelope: Envelope, meta: { purpose: WriterCall["purpo
   const call: WriterCall = {
     at: new Date().toISOString(),
     ...meta,
-    model: WRITER.model,
+    model: writerBackend() === "codex" ? (codexSettings().model || "codex-default") : WRITER.model,
     inputTokens: u.input_tokens ?? 0,
     cacheWriteTokens: u.cache_creation_input_tokens ?? 0,
     cacheReadTokens: u.cache_read_input_tokens ?? 0,
@@ -219,6 +220,10 @@ async function callApi(prompt: string, system: string, meta: { purpose: WriterCa
 
 function callWriter(prompt: string, system: string, meta: { purpose: WriterCall["purpose"]; jobId: string }): Promise<string> {
   if (writerBackend() === "api") return callApi(prompt, system, meta);
+  if (writerBackend() === "codex") return callCodex(prompt, system, effortFor(meta.purpose)).then((reply) => {
+    recordWriterCall(reply, meta);
+    return reply.result;
+  });
   return new Promise((resolve, reject) => {
     mkdirSync(WRITER.cwd, { recursive: true });
     const child = spawn(

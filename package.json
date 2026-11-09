@@ -23,7 +23,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check-types": "tsc --noEmit",
-    "audit": "npm audit --omit=dev"
+    "audit": "npm audit --omit=dev",
+    "check:writer": "node --import tsx bin/check-writer.js"
   },
   "dependencies": {
     "commander": "^15.0.0",

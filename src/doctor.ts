@@ -7,7 +7,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
-import { BROWSER, childEnv, DOCTOR, GMAIL, PATHS, ROOT, WRITER, writerBackend } from "./config.js";
+import { BROWSER, childEnv, codexSettings, DOCTOR, GMAIL, PATHS, ROOT, WRITER, writerBackend } from "./config.js";
 import { loadAccounts } from "./accounts/config.js";
 import { defaultStore, type SecretStore } from "./accounts/secrets.js";
 import { loadGmail } from "./mail/gmail.js";
@@ -41,6 +41,10 @@ export function checkChrome(file: string = BROWSER.chromePath): Check {
 
 /** How Claude is reached: Claude Code on the person's subscription, or the Claude API on their own key. */
 export function checkClaude(): Check {
+  if (writerBackend() === "codex") {
+    const r = spawnSync(codexSettings().command, ["--version"], { encoding: "utf8", env: childEnv(), timeout: DOCTOR.claudeTimeoutMs });
+    return { name: "Codex", ok: r.status === 0, detail: r.status === 0 ? r.stdout.trim() : "Codex CLI could not start", fix: "Install or repair the Codex CLI (`npm install -g @openai/codex`), then run `codex login`. Set CODEX_COMMAND if it is not on PATH." };
+  }
   if (writerBackend() === "api") {
     return { name: "Claude", ok: true, detail: `the Claude API, billed to ANTHROPIC_API_KEY in .env (${WRITER.model})`, fix: "" };
   }
@@ -60,7 +64,7 @@ export function checkKey(key = process.env.OPENROUTER_API_KEY ?? ""): Check {
 }
 
 export function checkProfile(file: string = PATHS.profile): { check: Check; profile: Profile | null } {
-  if (!existsSync(file)) return { profile: null, check: { name: "Your profile", ok: false, detail: `${rel(file)} does not exist yet`, fix: "Run /setup in Claude Code, or copy data/profile.example.json to data/profile.json and fill it in" } };
+  if (!existsSync(file)) return { profile: null, check: { name: "Your profile", ok: false, detail: `${rel(file)} does not exist yet`, fix: "Follow docs/CODEX.md in Codex, run /setup in Claude Code, or copy data/profile.example.json to data/profile.json and fill it in" } };
   try {
     const profile = loadProfile(file);
     return { profile, check: { name: "Your profile", ok: true, detail: `${profile.name.first} ${profile.name.last}, ${profile.facts.length} facts, ${profile.answers.length} standing answers`, fix: "" } };
@@ -134,6 +138,15 @@ export async function checkKeyOnline(): Promise<Check> {
 
 /** One tiny Claude call: proves the sign-in or the key works and the writer's model is available. */
 export async function checkClaudeOnline(): Promise<Check> {
+  if (writerBackend() === "codex") {
+    const fix = "Run `codex login`, and check CODEX_MODEL is available to your account.";
+    try {
+      const text = await askWriter("ok?", "Reply with the single word ok.");
+      return { name: "Codex answers", ok: /^ok[.!]?$/i.test(text.trim()), detail: codexSettings().model || "Codex default model", fix };
+    } catch (err) {
+      return { name: "Codex answers", ok: false, detail: (err instanceof Error ? err.message : String(err)).slice(0, 200), fix };
+    }
+  }
   if (writerBackend() === "api") {
     try {
       const text = await askWriter("ok?", "Reply with the single word ok.");

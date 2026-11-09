@@ -265,6 +265,7 @@ export const BROWSER = {
  */
 export const WRITER = {
   command: "claude",
+  maxOutputBytes: 2_000_000,
   model: "claude-sonnet-5-5",
   effort: "low",
   timeoutMs: 180_000,
@@ -443,7 +444,7 @@ export const ASSIST = {
 
 /** What a child process may inherit from the environment. Keys and passwords are not on the list, so no child ever sees one. */
 export const CHILD_ENV = {
-  allow: ["PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TZ", "CLAUDE_CONFIG_DIR", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "https_proxy", "http_proxy", "no_proxy", "SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS", "__CF_USER_TEXT_ENCODING", "DISPLAY"],
+  allow: ["PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TZ", "CLAUDE_CONFIG_DIR", "CODEX_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "https_proxy", "http_proxy", "no_proxy", "SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS", "__CF_USER_TEXT_ENCODING", "DISPLAY"],
 } as const;
 
 /** The environment for a child process: the allowed names only, plus what the caller adds on purpose. */
@@ -471,7 +472,12 @@ export const REPORT = {
   statuses: ["applied", "needs_review", "queued", "skipped", "blocked", "failed"],
 } as const;
 
-export type WriterBackend = "claude-code" | "api";
+export const codexSettings = () => ({
+  command: process.env.CODEX_COMMAND?.trim() || "codex",
+  model: process.env.CODEX_MODEL?.trim() || "",
+});
+
+export type WriterBackend = "claude-code" | "api" | "codex";
 
 /**
  * How Claude is reached. Claude Code runs headless on the person's own subscription and is the
@@ -480,7 +486,7 @@ export type WriterBackend = "claude-code" | "api";
  */
 export function writerBackend(): WriterBackend {
   const asked = (process.env.WRITER_BACKEND ?? "").trim();
-  if (asked === "claude-code" || asked === "api") return asked;
+  if (asked === "claude-code" || asked === "api" || asked === "codex") return asked;
   return process.env.ANTHROPIC_API_KEY ? "api" : "claude-code";
 }
 
