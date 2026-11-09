@@ -90,23 +90,27 @@ Create an OpenRouter key and enter it yourself into `.env` as
 `OPENROUTER_API_KEY`. Keep the file private. This is still required for JEV.
 
 ```bash
-npx jev doctor --online
+node bin/jev.js doctor --online
 ```
 
 Expected: the writer, JEV, profile and resume checks pass. An empty job queue is
 normal before discovery. Codex usage is separate from OpenRouter usage; this
 application does not calculate Codex billing.
 
+Run commands below with `node bin/jev.js` so they use this checkout.
+`npx jev` can try to fetch a package instead because this repository does not
+install its own executable into `node_modules/.bin`.
+
 ## 5. Rehearse one application
 
 ```bash
-npx jev discover --limit 10
-npx jev status
-npx jev apply --dry --fresh --count 1
+node bin/jev.js discover --limit 10
+node bin/jev.js status
+node bin/jev.js apply --dry --fresh --count 1
 ```
 
 Pick a Greenhouse, Lever or Ashby job for the first test. You can target one from
-the queue with `npx jev apply --dry --fresh JOB_ID`. `--fresh` prevents old writer
+the queue with `node bin/jev.js apply --dry --fresh JOB_ID`. `--fresh` prevents old writer
 answers from hiding whether Codex is being called. A form with no open questions
 may not need a writer call at all; `npm run check:writer` tests Codex directly.
 
@@ -119,13 +123,13 @@ in using accounts you previously configured; keep it out of the first test.
 To leave a form open for inspection:
 
 ```bash
-npx jev apply --fresh --count 1
+node bin/jev.js apply --fresh --count 1
 ```
 
 There is no `--submit` here. Only after inspecting and approving that specific form:
 
 ```bash
-npx jev submit JOB_ID
+node bin/jev.js submit JOB_ID
 ```
 
 That last command really sends an application. CAPTCHA, signatures and human
@@ -134,7 +138,7 @@ verification steps remain yours to complete.
 ## Optional: test tailored documents
 
 ```bash
-npx jev tailor JOB_ID --cover --open
+node bin/jev.js tailor JOB_ID --cover --open
 ```
 
 Expected: PDFs open and contain only your facts. This generates documents but
